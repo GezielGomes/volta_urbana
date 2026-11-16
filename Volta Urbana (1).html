@@ -1,0 +1,616 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Volta Urbana</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Figtree:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script>tailwind.config = { darkMode: "class" };</script>
+<style>
+  html { scroll-behavior: smooth; }
+  body { background: #0a0a0a; color: #f5f5f5; font-family: Figtree, ui-sans-serif, system-ui, sans-serif; }
+  html:not(.dark) body { background: #ffffff; color: #171717; }
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 60; background: #000; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } * { transition: none !important; } }
+</style>
+
+<div id="root"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js"></script>
+
+<script type="text/babel">
+const { useEffect, useMemo, useState } = React;
+
+/* ---------- ícones (traços no estilo lucide) ---------- */
+const mk = (children) => ({ className, ...p }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true" {...p}>{children}</svg>
+);
+const ArrowRight = mk(<path d="M5 12h14M12 5l7 7-7 7" />);
+const Check = mk(<path d="M20 6 9 17l-5-5" />);
+const Menu = mk(<path d="M4 6h16M4 12h16M4 18h16" />);
+const X = mk(<path d="M18 6 6 18M6 6l12 12" />);
+const Sun = mk(<><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" /></>);
+const Moon = mk(<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />);
+const MapPin = mk(<><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" /></>);
+const Clock = mk(<><circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /></>);
+const CalendarCheck = mk(<><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18M9 16l2 2 4-4" /></>);
+const Wallet = mk(<><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2" /><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4" /></>);
+const PackageCheck = mk(<><path d="M12 22V12M21 10V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l2-1.14M16.5 9.4 7.55 4.24M3.29 7 12 12l8.71-5M15 19l2 2 4-4" /></>);
+const Wrench = mk(<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />);
+const Gauge = mk(<path d="m12 14 4-4M3.34 19a10 10 0 1 1 17.32 0" />);
+const BatteryCharging = mk(<path d="M15 7h1a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-2M6 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h1M11 7l-3 5h4l-3 5M22 11v2" />);
+const Zap = mk(<path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z" />);
+const ShieldCheck = mk(<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1zM9 12l2 2 4-4" />);
+const Leaf = mk(<path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10ZM2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" />);
+const PiggyBank = mk(<path d="M19 5c-1.5 0-2.8 1.4-3 2-3.5-1.5-11-.3-11 5 0 1.8 0 3 2 4.5V20h4v-2h3v2h4v-4c1-.5 1.7-1 2-2h2v-4h-2c0-1-.5-1.5-1-2V5zM2 9v1c0 1.1.9 2 2 2h1" />);
+
+/* ---------------------------- CONFIGURAÇÃO ---------------------------- */
+const STORE = {
+  name: "Volta Urbana",
+  heroVideo: "",
+  heroPoster: "",
+  logo: "",
+  whatsapp: "55DDDSEUNUMERO",
+  address: "Av. Exemplo, 000 – Centro, Cidade Exemplo – UF",
+  hours: [
+    { label: "Segunda a sexta", value: "09h às 18h" },
+    { label: "Sábado", value: "09h às 13h" },
+    { label: "Domingo e feriados", value: "Fechado" },
+  ],
+};
+
+const MODELS = [
+  { id: "m1", name: "Volta Flex", short: "Flex", tag: "Patinete elétrico", stock: "Consulte disponibilidade", image: "/modelos/m1.jpg", tone: ["#38bdf8", "#0369a1"] },
+  { id: "m2", name: "Volta City 10", short: "City 10", tag: "Scooter urbana", stock: "Consulte disponibilidade", image: "/modelos/m2.jpg", tone: ["#34d399", "#047857"] },
+  { id: "m3", name: "Volta Max 22", short: "Max 22", tag: "Scooter urbana", stock: "Consulte disponibilidade", image: "/modelos/m3.jpg", tone: ["#fbbf24", "#b45309"] },
+  { id: "m4", name: "Volta Tri", short: "Tri", tag: "Triciclo elétrico", stock: "Consulte disponibilidade", image: "/modelos/m4.jpg", tone: ["#f87171", "#b91c1c"] },
+  { id: "m5", name: "Volta City 15", short: "City 15", tag: "Scooter urbana", stock: "Consulte disponibilidade", image: "/modelos/m5.jpg", tone: ["#a78bfa", "#6d28d9"] },
+  { id: "m6", name: "Volta Eco 15", short: "Eco 15", tag: "Scooter urbana", stock: "Consulte disponibilidade", image: "/modelos/m6.jpg", tone: ["#a3e635", "#4d7c0f"] },
+];
+
+const BENEFITS = [
+  { icon: PackageCheck, title: "Pronta-entrega na cidade", text: "Veja, toque e leve o seu modelo sem esperar semanas por frete ou prazos de fábrica." },
+  { icon: Wrench, title: "Assistência técnica local", text: "Revisão, peças e suporte com técnicos especializados em elétricos, perto de você." },
+  { icon: Wallet, title: "Condições facilitadas", text: "Fale com o consultor da loja e conheça as formas de pagamento disponíveis para o seu perfil." },
+  { icon: CalendarCheck, title: "Test-drive disponível", text: "Agende em 1 minuto, venha à loja e sinta a scooter na prática, sem compromisso." },
+];
+
+const TIME_SLOTS = ["Manhã (09h – 12h)", "Tarde (13h – 15h)", "Fim de tarde (15h – 18h)"];
+
+/* ------------------------------ Utilitários ------------------------------ */
+const cn = (...c) => c.filter(Boolean).join(" ");
+
+const maskPhone = (value) => {
+  const d = value.replace(/\D/g, "").slice(0, 11);
+  if (d.length <= 2) return d;
+  if (d.length <= 6) return `(${d.slice(0, 2)}) ${d.slice(2)}`;
+  if (d.length <= 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
+  return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+};
+
+const todayISO = () => {
+  const d = new Date();
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+};
+
+const scrollToId = (id) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+
+/* ------------------------- Componentes de UI ------------------------- */
+const buttonVariants = {
+  default: "bg-amber-400 text-neutral-950 hover:bg-amber-300 shadow-lg shadow-amber-500/25",
+  outline: "border border-neutral-300 bg-transparent text-neutral-900 hover:bg-neutral-100 dark:border-neutral-700 dark:text-neutral-100 dark:hover:bg-neutral-800",
+  gold: "bg-gradient-to-b from-amber-300 to-amber-500 text-black shadow-lg shadow-amber-500/25 hover:brightness-110",
+  headerGhost: "bg-transparent text-neutral-200 hover:bg-white/10",
+  outlineLight: "border-2 border-white bg-transparent text-white hover:bg-white/10",
+  whatsapp: "bg-[#25D366] text-neutral-950 hover:bg-[#20bd5a] shadow-lg shadow-green-500/25",
+};
+const buttonSizes = { sm: "h-9 px-4 text-sm", md: "h-11 px-6 text-sm", lg: "h-14 px-8 text-base" };
+
+const Button = ({ variant = "default", size = "md", className, ...props }) => (
+  <button
+    className={cn(
+      "inline-flex items-center justify-center gap-2 rounded-xl font-bold uppercase tracking-wide transition-all duration-200",
+      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-neutral-950",
+      "disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98]",
+      buttonVariants[variant], buttonSizes[size], className
+    )}
+    {...props}
+  />
+);
+
+const Card = ({ className, ...props }) => (
+  <div className={cn("rounded-2xl border border-neutral-200 bg-white text-neutral-900 shadow-sm dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-100", className)} {...props} />
+);
+
+const Badge = ({ className, ...props }) => (
+  <span className={cn("inline-flex items-center gap-1.5 rounded-full border border-neutral-200 bg-neutral-100 px-3 py-1 text-xs font-medium text-neutral-700 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200", className)} {...props} />
+);
+
+const Label = ({ className, ...props }) => (
+  <label className={cn("mb-1.5 block text-sm font-medium text-neutral-700 dark:text-neutral-300", className)} {...props} />
+);
+
+const fieldClasses =
+  "h-12 w-full rounded-xl border border-neutral-300 bg-white px-4 text-base text-neutral-900 placeholder:text-neutral-400 " +
+  "focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-400/40 " +
+  "dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100 dark:placeholder:text-neutral-500";
+
+const Input = ({ className, ...props }) => <input className={cn(fieldClasses, className)} {...props} />;
+const Select = ({ className, children, ...props }) => (
+  <select className={cn(fieldClasses, "appearance-none", className)} {...props}>{children}</select>
+);
+const FieldError = ({ message }) => (message ? <p className="mt-1.5 text-sm text-red-500">{message}</p> : null);
+
+const WhatsAppIcon = ({ className }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
+    <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38a9.9 9.9 0 0 0 4.74 1.21h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2Zm0 18.15h-.01a8.24 8.24 0 0 1-4.2-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.2 8.2 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.25-8.24 2.2 0 4.27.86 5.82 2.42a8.18 8.18 0 0 1 2.41 5.83c0 4.54-3.7 8.23-8.22 8.23Zm4.52-6.16c-.25-.12-1.47-.72-1.69-.81-.23-.08-.39-.12-.56.12-.17.25-.64.81-.78.97-.14.17-.29.19-.54.06-.25-.12-1.05-.39-2-1.23-.74-.66-1.23-1.47-1.38-1.72-.14-.25-.02-.38.11-.5.11-.11.25-.29.37-.43.12-.15.17-.25.25-.41.08-.17.04-.31-.02-.43-.06-.12-.56-1.34-.76-1.84-.2-.48-.41-.42-.56-.43h-.48c-.17 0-.43.06-.66.31-.23.25-.87.85-.87 2.07 0 1.22.89 2.4 1.01 2.56.12.17 1.75 2.67 4.23 3.74.59.26 1.05.41 1.41.52.59.19 1.13.16 1.56.1.48-.07 1.47-.6 1.67-1.18.21-.58.21-1.07.14-1.18-.06-.1-.23-.16-.48-.29Z" />
+  </svg>
+);
+
+/* Ilustração de fallback quando o modelo não tem foto */
+const ScooterIllustration = ({ className, tone = ["#34d399", "#059669"], gid = "g" }) => (
+  <svg viewBox="0 0 400 240" className={className} role="img" aria-label="Scooter elétrica">
+    <defs>
+      <linearGradient id={`body-${gid}`} x1="0" x2="1">
+        <stop offset="0" stopColor={tone[0]} />
+        <stop offset="1" stopColor={tone[1]} />
+      </linearGradient>
+    </defs>
+    <ellipse cx="200" cy="214" rx="150" ry="10" fill="currentColor" opacity="0.08" />
+    <circle cx="90" cy="170" r="38" fill="none" stroke="currentColor" strokeWidth="12" opacity="0.8" />
+    <circle cx="310" cy="170" r="38" fill="none" stroke="currentColor" strokeWidth="12" opacity="0.8" />
+    <circle cx="90" cy="170" r="10" fill="currentColor" opacity="0.6" />
+    <circle cx="310" cy="170" r="10" fill="currentColor" opacity="0.6" />
+    <path d="M90 170 L140 120 H250 L310 170" fill="none" stroke="currentColor" strokeWidth="8" opacity="0.5" />
+    <path d="M120 120 C130 80 190 70 235 100 L290 100 L310 170 L220 170 L190 130 Z" fill={`url(#body-${gid})`} />
+    <rect x="270" y="52" width="12" height="62" rx="6" fill="currentColor" opacity="0.7" />
+    <rect x="250" y="44" width="52" height="10" rx="5" fill="currentColor" opacity="0.8" />
+    <rect x="140" y="92" width="80" height="16" rx="8" fill="currentColor" opacity="0.7" />
+  </svg>
+);
+
+const ScooterImage = ({ model, className, cover = false }) => {
+  const [failed, setFailed] = useState(false);
+  if (!model.image || failed) {
+    return (
+      <div className="grid h-full w-full place-items-center bg-gradient-to-b from-neutral-800 to-neutral-950 p-6">
+        <ScooterIllustration gid={model.id} tone={model.tone} className={cn("w-full max-w-[22rem] text-neutral-400", className && "")} />
+      </div>
+    );
+  }
+  return (
+    <img src={model.image} alt={model.name} loading="lazy" onError={() => setFailed(true)}
+      className={cn(cover ? "object-cover" : "object-contain drop-shadow-2xl", className)} />
+  );
+};
+
+/* -------------------------------- Seções -------------------------------- */
+const Brand = () => (
+  <span className="text-left leading-none">
+    <span className="block text-3xl font-black tracking-tight text-amber-400">Volta</span>
+    <span className="mt-1 block text-[9px] font-medium uppercase tracking-[0.35em] text-amber-400/90">
+      Mobilidade Urbana · Cidade Exemplo
+    </span>
+  </span>
+);
+
+const Header = ({ dark, toggleDark }) => {
+  const [open, setOpen] = useState(false);
+  const links = [
+    { id: "modelos", label: "Modelos" },
+    { id: "vantagens", label: "Vantagens" },
+    { id: "test-drive", label: "Test-drive" },
+    { id: "contato", label: "Loja" },
+  ];
+  const go = (id) => { setOpen(false); scrollToId(id); };
+
+  return (
+    <header className="sticky z-40 border-b border-neutral-800 bg-black text-white" style={{ top: "env(safe-area-inset-top, 0px)" }}>
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
+        <button onClick={() => go("topo")} className="flex items-center gap-2" aria-label="Início">
+          {STORE.logo ? <img src={STORE.logo} alt={STORE.name} className="h-10 w-auto" /> : <Brand />}
+        </button>
+
+        <nav className="hidden items-center gap-1 md:flex">
+          {links.map((l) => (
+            <Button key={l.id} variant="headerGhost" size="sm" onClick={() => go(l.id)}>{l.label}</Button>
+          ))}
+        </nav>
+
+        <div className="flex items-center gap-2">
+          <Button variant="headerGhost" size="sm" onClick={toggleDark} aria-label="Alternar tema claro/escuro" className="w-9 px-0">
+            {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          </Button>
+          <Button size="sm" className="hidden sm:inline-flex" onClick={() => go("test-drive")}>Agendar test-drive</Button>
+          <Button variant="headerGhost" size="sm" className="w-9 px-0 md:hidden" onClick={() => setOpen((o) => !o)} aria-label="Abrir menu">
+            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </Button>
+        </div>
+      </div>
+
+      {open && (
+        <div className="border-t border-neutral-800 bg-black px-4 pb-4 pt-2 md:hidden">
+          {links.map((l) => (
+            <button key={l.id} onClick={() => go(l.id)} className="block w-full rounded-lg px-3 py-3 text-left text-sm font-medium text-neutral-200 hover:bg-white/10">{l.label}</button>
+          ))}
+          <Button className="mt-2 w-full" onClick={() => go("test-drive")}>Agendar test-drive gratuito</Button>
+        </div>
+      )}
+    </header>
+  );
+};
+
+const Stat = ({ icon: Icon, value, label }) => (
+  <div className="text-center">
+    <Icon className="mx-auto h-5 w-5 text-amber-400" />
+    <p className="mt-1 text-base font-extrabold text-white">{value}</p>
+    <p className="text-xs uppercase tracking-wide text-neutral-400">{label}</p>
+  </div>
+);
+
+const Hero = () => {
+  const hero = MODELS.find((m) => m.id === "m3") || MODELS[0];
+  const [videoOk, setVideoOk] = useState(Boolean(STORE.heroVideo));
+  return (
+    <section id="topo" className="relative isolate overflow-hidden bg-black text-white">
+      <div className="absolute inset-0 -z-10">
+        {STORE.heroPoster && <img src={STORE.heroPoster} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover object-[50%_60%]" />}
+        {videoOk && (
+          <video className="absolute inset-0 h-full w-full object-cover motion-reduce:hidden" src={STORE.heroVideo}
+            poster={STORE.heroPoster || undefined} autoPlay muted loop playsInline preload="auto" aria-hidden="true" onError={() => setVideoOk(false)} />
+        )}
+        {!STORE.heroPoster && (
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_75%_30%,rgba(251,191,36,0.28),transparent_55%)]" />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/65 to-black/30" />
+        <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black to-transparent" />
+      </div>
+
+      <div className="relative mx-auto max-w-6xl px-4 py-16 sm:px-6 md:py-24">
+        <div className="max-w-2xl">
+          <span className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-black/40 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.2em] backdrop-blur">
+            <span className="h-2 w-2 rounded-full bg-amber-400" />
+            Loja física · Cidade Exemplo/UF
+          </span>
+
+          <h1 className="mt-6 text-6xl uppercase leading-[0.95] tracking-wide sm:text-7xl lg:text-8xl" style={{ fontFamily: "'Bebas Neue', Figtree, sans-serif" }}>
+            Sua mobilidade urbana em <span className="text-amber-400">Cidade Exemplo</span> começa aqui.
+          </h1>
+
+          <p className="mt-6 max-w-xl text-lg text-neutral-200">
+            <strong className="font-bold text-white">Economia, sustentabilidade e autonomia</strong> para o seu
+            dia a dia. Veja os modelos na loja, teste na prática e saia com a sua scooter.
+          </p>
+
+          <div className="mt-6 h-0.5 w-20 bg-amber-400" />
+
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <Button size="lg" variant="gold" onClick={() => scrollToId("test-drive")}>
+              Agendar Test-Drive Gratuito <ArrowRight className="h-5 w-5" />
+            </Button>
+            <Button size="lg" variant="outlineLight" onClick={() => scrollToId("modelos")}>Ver Modelos</Button>
+          </div>
+
+          <p className="mt-6 max-w-md text-xs leading-relaxed text-neutral-400">
+            Hora marcada na loja. Condições e categoria legal do modelo (com ou sem CNH) confirmadas antes da compra.
+          </p>
+        </div>
+
+        <div className="mt-14 grid items-stretch gap-4 md:grid-cols-[1fr_1.5fr_1fr]">
+          <div className="grid grid-cols-2 content-center gap-4 rounded-xl border-2 border-white/80 bg-neutral-950/70 p-5 backdrop-blur-sm">
+            <Stat icon={CalendarCheck} value="Test-drive" label="Grátis" />
+            <Stat icon={Wallet} value="Condições" label="Facilitadas" />
+          </div>
+
+          <div className="relative rounded-xl border-2 border-white/80 bg-neutral-950/70 p-5 backdrop-blur-sm">
+            <span className="absolute left-8 top-8 z-10 rounded-full bg-amber-400 px-3 py-1 text-xs font-bold uppercase tracking-wide text-black">Na vitrine da loja</span>
+            <div className="aspect-[4/3] overflow-hidden rounded-lg bg-neutral-900">
+              <ScooterImage model={hero} cover className="h-full w-full object-[50%_60%]" />
+            </div>
+            <p className="mt-3 text-center text-sm font-bold uppercase tracking-widest text-neutral-300">{hero.short}</p>
+          </div>
+
+          <div className="grid grid-cols-2 content-center gap-4 rounded-xl border-2 border-white/80 bg-neutral-950/70 p-5 backdrop-blur-sm">
+            <Stat icon={PackageCheck} value="Pronta-entrega" label="Consulte" />
+            <Stat icon={Wrench} value="Assistência" label="Local" />
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+const ModelCard = ({ model, onChoose }) => {
+  const specs = [
+    model.speed && { icon: Gauge, text: model.speed },
+    model.range && { icon: BatteryCharging, text: model.range },
+    model.power && { icon: Zap, text: model.power },
+    model.cnh && { icon: ShieldCheck, text: model.cnh },
+  ].filter(Boolean);
+
+  return (
+    <Card className="group flex flex-col overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:border-amber-400/60 hover:shadow-xl hover:shadow-amber-500/10">
+      <div className="relative aspect-[4/5] overflow-hidden bg-neutral-900">
+        <div className="absolute left-4 top-4 z-10 flex gap-2">
+          <Badge className="border-amber-300/60 bg-amber-50 text-amber-700 dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-300">{model.tag}</Badge>
+        </div>
+        <ScooterImage model={model} cover className="h-full w-full transition-transform duration-500 group-hover:scale-105" />
+      </div>
+
+      <div className="flex flex-1 flex-col p-6">
+        <h3 className="text-2xl font-black uppercase tracking-tight">{model.name}</h3>
+        <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">{model.stock} na loja</p>
+
+        {specs.length > 0 && (
+          <div className="mt-4 flex flex-wrap gap-2">
+            {specs.map(({ icon: Icon, text }) => (<Badge key={text}><Icon className="h-3.5 w-3.5 text-amber-500" />{text}</Badge>))}
+          </div>
+        )}
+
+        <p className="mt-5 flex-1 border-t border-neutral-200 pt-4 text-sm text-neutral-600 dark:border-neutral-800 dark:text-neutral-300">
+          Valores, condições e ficha técnica com o consultor da loja.
+        </p>
+
+        <Button className="mt-4 w-full" onClick={() => onChoose(model.id)}>Quero este modelo</Button>
+      </div>
+    </Card>
+  );
+};
+
+const Models = ({ onChoose }) => (
+  <section id="modelos" className="scroll-mt-16 bg-neutral-50 py-16 dark:bg-neutral-900/40 md:py-24">
+    <div className="mx-auto max-w-6xl px-4 sm:px-6">
+      <div className="mx-auto max-w-2xl text-center">
+        <p className="text-sm font-semibold uppercase tracking-widest text-amber-600 dark:text-amber-400">Vitrine local</p>
+        <h2 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">Modelos disponíveis na loja</h2>
+        <p className="mt-3 text-neutral-600 dark:text-neutral-300">
+          Escolha o seu favorito e agende para ver de perto. Valores, condições e disponibilidade confirmados pelo consultor da loja.
+        </p>
+      </div>
+      <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {MODELS.map((m) => <ModelCard key={m.id} model={m} onChoose={onChoose} />)}
+      </div>
+    </div>
+  </section>
+);
+
+const Benefits = () => (
+  <section id="vantagens" className="scroll-mt-16 py-16 md:py-24">
+    <div className="mx-auto max-w-6xl px-4 sm:px-6">
+      <div className="mx-auto max-w-2xl text-center">
+        <p className="text-sm font-semibold uppercase tracking-widest text-amber-600 dark:text-amber-400">Por que ir à loja física</p>
+        <h2 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">Tudo o que você precisa, na sua cidade</h2>
+      </div>
+
+      <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        {BENEFITS.map(({ icon: Icon, title, text }) => (
+          <Card key={title} className="p-6 transition-colors hover:border-amber-400/60">
+            <span className="grid h-12 w-12 place-items-center rounded-xl bg-amber-400/15 text-amber-600 dark:text-amber-400"><Icon className="h-6 w-6" /></span>
+            <h3 className="mt-4 text-lg font-bold">{title}</h3>
+            <p className="mt-2 text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">{text}</p>
+          </Card>
+        ))}
+      </div>
+
+      <div className="mt-10 grid gap-4 rounded-2xl border border-amber-400/30 bg-amber-400/10 p-6 sm:grid-cols-3">
+        {[
+          { icon: PiggyBank, t: "Economia", d: "Custo por km muito menor que a gasolina." },
+          { icon: Leaf, t: "Sustentabilidade", d: "Zero emissão de poluentes no uso diário." },
+          { icon: Zap, t: "Autonomia", d: "Bateria removível: carregue em casa ou no trabalho." },
+        ].map(({ icon: Icon, t, d }) => (
+          <div key={t} className="flex items-start gap-3">
+            <Icon className="mt-0.5 h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400" />
+            <p className="text-sm text-neutral-700 dark:text-neutral-200"><strong className="font-semibold">{t}.</strong> {d}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+);
+
+const TestDrive = ({ selectedModel, setSelectedModel }) => {
+  const [form, setForm] = useState({ name: "", phone: "", date: "", slot: "" });
+  const [errors, setErrors] = useState({});
+  const [sent, setSent] = useState(false);
+  const minDate = useMemo(todayISO, []);
+
+  const set = (key) => (e) => {
+    const value = key === "phone" ? maskPhone(e.target.value) : e.target.value;
+    setForm((f) => ({ ...f, [key]: value }));
+    setErrors((er) => ({ ...er, [key]: undefined }));
+  };
+
+  const validate = () => {
+    const er = {};
+    if (form.name.trim().length < 3) er.name = "Informe seu nome.";
+    if (form.phone.replace(/\D/g, "").length < 10) er.phone = "Informe um WhatsApp válido com DDD.";
+    if (!selectedModel) er.model = "Escolha um modelo.";
+    if (!form.date) er.date = "Escolha o melhor dia.";
+    if (!form.slot) er.slot = "Escolha o melhor horário.";
+    setErrors(er);
+    return Object.keys(er).length === 0;
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!validate()) return;
+    const model = MODELS.find((m) => m.id === selectedModel);
+    const day = new Date(`${form.date}T12:00:00`).toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "2-digit" });
+    const text = [
+      `Olá! Quero agendar um test-drive na ${STORE.name}.`, ``,
+      `*Nome:* ${form.name.trim()}`, `*WhatsApp:* ${form.phone}`, `*Modelo:* ${model?.name}`,
+      `*Melhor dia:* ${day}`, `*Horário:* ${form.slot}`,
+    ].join("\n");
+    window.open(`https://wa.me/${STORE.whatsapp}?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer");
+    setSent(true);
+  };
+
+  const dk = "border-neutral-700 bg-neutral-950 text-neutral-100";
+
+  return (
+    <section id="test-drive" className="relative scroll-mt-16 overflow-hidden bg-neutral-950 py-16 text-white md:py-24">
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute -right-24 top-0 h-96 w-96 rounded-full bg-amber-400/20 blur-3xl" />
+        <div className="absolute -left-24 bottom-0 h-80 w-80 rounded-full bg-zinc-500/10 blur-3xl" />
+      </div>
+
+      <div className="relative mx-auto grid max-w-6xl items-start gap-10 px-4 sm:px-6 lg:grid-cols-2 lg:gap-16">
+        <div className="min-w-0">
+          <p className="text-sm font-semibold uppercase tracking-widest text-amber-400">Test-drive grátis</p>
+          <h2 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl lg:text-5xl">Reserve seu horário e venha pilotar.</h2>
+          <p className="mt-4 max-w-md text-neutral-300">
+            Preencha 4 campos e o consultor da loja confirma com você pelo WhatsApp. Sem fila, sem burocracia e sem compromisso de compra.
+          </p>
+          <ol className="mt-8 space-y-5">
+            {[
+              ["Escolha o modelo e o horário", "Leva menos de 1 minuto."],
+              ["Envie pelo WhatsApp", "Sua mensagem já vai pronta para o consultor."],
+              ["Venha à loja e teste", "Traga um documento com foto e, se for o caso, sua CNH."],
+            ].map(([t, d], i) => (
+              <li key={t} className="flex gap-4">
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-amber-400 font-bold text-neutral-950">{i + 1}</span>
+                <div><p className="font-semibold">{t}</p><p className="text-sm text-neutral-400">{d}</p></div>
+              </li>
+            ))}
+          </ol>
+        </div>
+
+        <Card className="min-w-0 border-neutral-700 bg-neutral-900 p-6 text-neutral-100 shadow-2xl sm:p-8">
+          {sent ? (
+            <div className="py-8 text-center">
+              <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-amber-400 text-neutral-950"><Check className="h-7 w-7" strokeWidth={3} /></span>
+              <h3 className="mt-4 text-xl font-bold">Quase lá!</h3>
+              <p className="mt-2 text-sm text-neutral-300">
+                Abrimos o WhatsApp com a sua solicitação. É só tocar em enviar para falar com o consultor da unidade. Se a janela não abriu, tente novamente.
+              </p>
+              <Button variant="outline" className="mt-6 border-neutral-600 text-neutral-100 hover:bg-neutral-800" onClick={() => setSent(false)}>Fazer outro agendamento</Button>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} noValidate className="space-y-5">
+              <div>
+                <Label htmlFor="name" className="text-neutral-300">Nome</Label>
+                <Input id="name" autoComplete="name" placeholder="Como podemos te chamar?" value={form.name} onChange={set("name")} className={dk} />
+                <FieldError message={errors.name} />
+              </div>
+              <div>
+                <Label htmlFor="phone" className="text-neutral-300">Telefone / WhatsApp</Label>
+                <Input id="phone" type="tel" inputMode="tel" autoComplete="tel" placeholder="(21) 99999-9999" value={form.phone} onChange={set("phone")} className={dk} />
+                <FieldError message={errors.phone} />
+              </div>
+              <div>
+                <Label htmlFor="model" className="text-neutral-300">Modelo de interesse</Label>
+                <Select id="model" value={selectedModel} onChange={(e) => { setSelectedModel(e.target.value); setErrors((er) => ({ ...er, model: undefined })); }} className={dk}>
+                  <option value="">Selecione um modelo</option>
+                  {MODELS.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
+                </Select>
+                <FieldError message={errors.model} />
+              </div>
+              <div className="grid gap-5 sm:grid-cols-2">
+                <div className="min-w-0">
+                  <Label htmlFor="date" className="text-neutral-300">Melhor dia</Label>
+                  <Input id="date" type="date" min={minDate} value={form.date} onChange={set("date")} className={cn(dk, "[color-scheme:dark]")} />
+                  <FieldError message={errors.date} />
+                </div>
+                <div className="min-w-0">
+                  <Label htmlFor="slot" className="text-neutral-300">Melhor horário</Label>
+                  <Select id="slot" value={form.slot} onChange={set("slot")} className={dk}>
+                    <option value="">Selecione</option>
+                    {TIME_SLOTS.map((s) => <option key={s} value={s}>{s}</option>)}
+                  </Select>
+                  <FieldError message={errors.slot} />
+                </div>
+              </div>
+              <Button type="submit" variant="whatsapp" size="lg" className="w-full">
+                <WhatsAppIcon className="h-6 w-6" /> Agendar pelo WhatsApp
+              </Button>
+              <p className="text-center text-xs text-neutral-400">
+                Seus dados são usados apenas para agendar seu atendimento. Não pedimos pagamentos nem documentos por aqui.
+              </p>
+            </form>
+          )}
+        </Card>
+      </div>
+    </section>
+  );
+};
+
+const Footer = () => (
+  <footer id="contato" className="scroll-mt-16 border-t border-neutral-800 bg-black text-white">
+    <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-4">
+      <div>
+        <Brand />
+        <p className="mt-4 text-sm text-neutral-400">Mobilidade elétrica com atendimento de verdade, perto de você.</p>
+      </div>
+      <div>
+        <h4 className="text-sm font-semibold uppercase tracking-wide">Endereço</h4>
+        <p className="mt-3 flex gap-2 text-sm text-neutral-400"><MapPin className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />{STORE.address}</p>
+      </div>
+      <div>
+        <h4 className="text-sm font-semibold uppercase tracking-wide">Funcionamento</h4>
+        <ul className="mt-3 space-y-2 text-sm text-neutral-400">
+          {STORE.hours.map((h) => (
+            <li key={h.label} className="flex gap-2">
+              <Clock className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
+              <span>{h.label}: <strong className="font-medium text-white">{h.value}</strong></span>
+            </li>
+          ))}
+        </ul>
+      </div>
+      <div>
+        <h4 className="text-sm font-semibold uppercase tracking-wide">Links rápidos</h4>
+        <ul className="mt-3 space-y-2 text-sm">
+          {[["modelos", "Modelos"], ["vantagens", "Vantagens da loja"], ["test-drive", "Agendar test-drive"]].map(([id, label]) => (
+            <li key={id}><button onClick={() => scrollToId(id)} className="text-neutral-400 transition-colors hover:text-amber-400">{label}</button></li>
+          ))}
+        </ul>
+      </div>
+    </div>
+    <div className="border-t border-neutral-800">
+      <p className="mx-auto max-w-6xl px-4 py-6 text-xs leading-relaxed text-neutral-500 sm:px-6">
+        Site demonstrativo da loja fictícia {STORE.name}. Imagens ilustrativas; valores e condições meramente exemplificativos.
+      </p>
+    </div>
+  </footer>
+);
+
+const FloatingWhatsApp = () => (
+  <a
+    href={`https://wa.me/${STORE.whatsapp}?text=${encodeURIComponent(`Olá! Vi a página da ${STORE.name} e gostaria de mais informações.`)}`}
+    target="_blank" rel="noopener noreferrer" aria-label="Falar com a loja no WhatsApp"
+    className="fixed z-50 grid h-14 w-14 place-items-center rounded-full bg-[#25D366] text-white shadow-xl shadow-green-600/40 transition-transform hover:scale-110"
+    style={{ bottom: "calc(1.25rem + env(safe-area-inset-bottom, 0px))", right: "calc(1.25rem + env(safe-area-inset-right, 0px))" }}
+  >
+    <WhatsAppIcon className="h-7 w-7" />
+  </a>
+);
+
+function VoltaUrbanaLanding() {
+  const [dark, setDark] = useState(true);
+  const [selectedModel, setSelectedModel] = useState("");
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", dark);
+  }, [dark]);
+
+  const chooseModel = (id) => { setSelectedModel(id); scrollToId("test-drive"); };
+
+  return (
+    <div className="min-h-screen bg-white text-neutral-900 antialiased dark:bg-neutral-950 dark:text-neutral-100">
+      <Header dark={dark} toggleDark={() => setDark((d) => !d)} />
+      <main>
+        <Hero />
+        <Models onChoose={chooseModel} />
+        <Benefits />
+        <TestDrive selectedModel={selectedModel} setSelectedModel={setSelectedModel} />
+      </main>
+      <Footer />
+      <FloatingWhatsApp />
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<VoltaUrbanaLanding />);
+</script>
+
+</body></html>
